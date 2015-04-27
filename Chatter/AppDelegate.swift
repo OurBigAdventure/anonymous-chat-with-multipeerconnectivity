@@ -23,25 +23,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func applicationWillResignActive(application: UIApplication) {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    let chatterBoxClient = MultiPeerConnectivityManager.sharedInstance()
+    chatterBoxClient.stopAdvertizing()
+    chatterBoxClient.stopBrowsing()
   }
 
   func applicationDidEnterBackground(application: UIApplication) {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    let chatterBoxClient = MultiPeerConnectivityManager.sharedInstance()
+    chatterBoxClient.stopAdvertizing()
+    chatterBoxClient.stopBrowsing()
   }
 
   func applicationWillEnterForeground(application: UIApplication) {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    let chatterBoxClient = MultiPeerConnectivityManager.sharedInstance()
+    chatterBoxClient.startAdvertizing()
+    chatterBoxClient.startBrowsing()
   }
 
   func applicationDidBecomeActive(application: UIApplication) {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    let chatterBoxClient = MultiPeerConnectivityManager.sharedInstance()
+    chatterBoxClient.startAdvertizing()
+    chatterBoxClient.startBrowsing()
   }
 
   func applicationWillTerminate(application: UIApplication) {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     // Saves changes in the application's managed object context before the application terminates.
     self.saveContext()
+    let chatterBoxClient = MultiPeerConnectivityManager.sharedInstance()
+    chatterBoxClient.stopAdvertizing()
+    chatterBoxClient.stopBrowsing()
   }
 
   // MARK: - Core Data stack
@@ -63,9 +78,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       // Create the coordinator and store
       var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
       let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Chatter.sqlite")
+      let options = [NSMigratePersistentStoresAutomaticallyOption:true, NSInferMappingModelAutomaticallyOption:true]
       var error: NSError? = nil
       var failureReason = "There was an error creating or loading the application's saved data."
-      if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+      if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: options, error: &error) == nil {
           coordinator = nil
           // Report any error we got.
           let dict = NSMutableDictionary()
