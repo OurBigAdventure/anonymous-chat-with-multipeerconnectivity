@@ -12,6 +12,7 @@ import MultipeerConnectivity
 protocol MultiPeerConnectivityManagerDelegate {
   func addMessage(id: String, message: String, name: String?)
   func removeMessage(id: String)
+  func incrementBlockCount()
 }
 
 @objc class MultiPeerConnectivityManager: NSObject {
@@ -26,11 +27,13 @@ protocol MultiPeerConnectivityManagerDelegate {
   var serviceBrowser: MCNearbyServiceBrowser?
   var messages = [String:MCPeerID]()
   var message = "My first chatter..."
+  var blockUsers = [String]()
   
   // MARK: Methods
   override init() {
     super.init()
-    peerID = MCPeerID(displayName: "\(NSDate().timeIntervalSince1970)")
+//    peerID = MCPeerID(displayName: "\(NSDate().timeIntervalSince1970)")
+    peerID = MCPeerID(displayName: UIDevice.currentDevice().identifierForVendor.UUIDString)
     session = MCSession(peer: peerID)
     session!.delegate = self
   }
@@ -39,9 +42,10 @@ protocol MultiPeerConnectivityManagerDelegate {
     return MultiPeerConnectivityManagerSingletonGlobal
   }
 
-  func setMessage(message: String) {
+  func myMessage(message: String) {
     if message != "" {
-      peerID = MCPeerID(displayName: "\(NSDate().timeIntervalSince1970)")
+//      peerID = MCPeerID(displayName: "\(NSDate().timeIntervalSince1970)")
+      peerID = MCPeerID(displayName: UIDevice.currentDevice().identifierForVendor.UUIDString)
       session = MCSession(peer: peerID)
       self.message = message
     }
@@ -73,6 +77,16 @@ protocol MultiPeerConnectivityManagerDelegate {
 //    println("Stopped Browsing: \(serviceBrowser!.serviceType)")
     serviceBrowser = nil
   }
+  
+  func blockPeer(name: String) -> Bool {
+    if messages[name]!.displayName != self.peerID!.displayName {
+      self.blockUsers.append(messages[name]!.displayName)
+      serviceBrowser?.invitePeer(messages[name], toSession: self.session, withContext: nil, timeout: 1.0)
+      delegate?.removeMessage(name)
+      return true
+    }
+    return false
+  }
 }
 
 let MultiPeerConnectivityManagerSingletonGlobal = MultiPeerConnectivityManager()
@@ -83,6 +97,8 @@ let MultiPeerConnectivityManagerSingletonGlobal = MultiPeerConnectivityManager()
 // MARK: MCNearbyServiceAdvertizer Delegate
 extension MultiPeerConnectivityManager: MCNearbyServiceAdvertiserDelegate {
   func advertiser(advertiser: MCNearbyServiceAdvertiser!, didReceiveInvitationFromPeer peerID: MCPeerID!, withContext context: NSData!, invitationHandler: ((Bool, MCSession!) -> Void)!) {
+    // this is a notice that we've been blocked
+    delegate?.incrementBlockCount()
     // refuse all connections, we don't need them
     invitationHandler(false, nil)
   }
@@ -122,9 +138,11 @@ extension MultiPeerConnectivityManager: MCSessionDelegate {
 // MARK: MCNearbyServiceBrowser Delegate
 extension MultiPeerConnectivityManager: MCNearbyServiceBrowserDelegate {
   func browser(browser: MCNearbyServiceBrowser!, foundPeer peerID: MCPeerID!, withDiscoveryInfo info: [NSObject : AnyObject]!) {
-    messages.updateValue(peerID, forKey: info["date"] as String)
-    delegate?.addMessage(info["date"] as String, message: info["message"] as String, name: info["name"] as? String)
-//    println("Discovered:\npeerID: \(peerID)\ninfo: \(info)")
+    if !contains(self.blockUsers, peerID.displayName as String) {
+      messages.updateValue(peerID, forKey: info["date"] as! String)
+      delegate?.addMessage(info["date"] as! String, message: info["message"] as! String, name: info["name"] as? String)
+//      println("Discovered:\npeerID: \(peerID)\ninfo: \(info)")
+    }
   }
   
   func browser(browser: MCNearbyServiceBrowser!, lostPeer peerID: MCPeerID!) {

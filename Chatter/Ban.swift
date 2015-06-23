@@ -1,5 +1,5 @@
 //
-//  Settings.swift
+//  Ban.swift
 //  Chatter
 //
 //  Created by Chris Brown on 6/1/15.
@@ -9,10 +9,9 @@
 import Foundation
 import CoreData
 
-@objc(Settings)
-class Settings: NSManagedObject {
+@objc(Ban)
+class Ban: NSManagedObject {
 
-    @NSManaged var color: String
-    @NSManaged var blocks: NSNumber
+    @NSManaged var id: String
 
 }

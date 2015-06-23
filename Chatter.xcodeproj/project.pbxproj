@@ -15,6 +15,7 @@
 		8389841E1A922E8A00CEC225 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8389841D1A922E8A00CEC225 /* Images.xcassets */; };
 		838984211A922E8A00CEC225 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8389841F1A922E8A00CEC225 /* LaunchScreen.xib */; };
 		8389842D1A922E8A00CEC225 /* ChatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8389842C1A922E8A00CEC225 /* ChatterTests.swift */; };
+		83C811691B1D480C00973EA5 /* Ban.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83C811681B1D480C00973EA5 /* Ban.swift */; };
 		83E9EA4A1A929DE40026555D /* MultiPeerConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83E9EA491A929DE40026555D /* MultiPeerConnectivityManager.swift */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		838984261A922E8A00CEC225 /* ChatterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChatterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8389842B1A922E8A00CEC225 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8389842C1A922E8A00CEC225 /* ChatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatterTests.swift; sourceTree = "<group>"; };
+		83C811681B1D480C00973EA5 /* Ban.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ban.swift; sourceTree = "<group>"; };
 		83E9EA491A929DE40026555D /* MultiPeerConnectivityManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiPeerConnectivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -67,6 +69,7 @@
 			children = (
 				838984151A922E8A00CEC225 /* Chatter.xcdatamodeld */,
 				8338CA0B1ABE5C6D007A6298 /* Settings.swift */,
+				83C811681B1D480C00973EA5 /* Ban.swift */,
 			);
 			name = CoreData;
 			sourceTree = "<group>";
@@ -236,6 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				838984191A922E8A00CEC225 /* ViewController.swift in Sources */,
+				83C811691B1D480C00973EA5 /* Ban.swift in Sources */,
 				838984141A922E8A00CEC225 /* AppDelegate.swift in Sources */,
 				83E9EA4A1A929DE40026555D /* MultiPeerConnectivityManager.swift in Sources */,
 				838984171A922E8A00CEC225 /* Chatter.xcdatamodeld in Sources */,

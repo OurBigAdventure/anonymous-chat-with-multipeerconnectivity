@@ -12,11 +12,12 @@ import CoreData
 import Foundation
 import MultipeerConnectivity
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UIAlertViewDelegate {
 
   @IBOutlet weak var textView: UITextView!
   @IBOutlet weak var thoughtButton: UIButton!
   @IBOutlet var textViewTopConstraint: NSLayoutConstraint!
+  @IBOutlet weak var blockCount: UILabel!
   var isSending = false
   let colorPicker = UIView()
   var fontList = [String]()
@@ -24,28 +25,36 @@ class ViewController: UIViewController {
   var messages = [String:String]()
   var animatedTextViews = [String:UITextView]()
   var currentSetting: Settings!
-  let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
+  let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
   var managedContext: NSManagedObjectContext?
+  var shouldBlock: String!
   
   override func viewDidLoad() {
     super.viewDidLoad()
     // Do any additional setup after loading the view, typically from a nib.
-    managedContext = appDelegate.managedObjectContext!
-    
+    managedContext = self.appDelegate.managedObjectContext!
+    self.blockCount.hidden = true
     let fetchRequest = NSFetchRequest(entityName: "Settings")
     fetchRequest.fetchLimit = 1
     var error: NSError? = nil
-    var fetchedResults = managedContext!.executeFetchRequest(fetchRequest, error: &error) as [Settings]
+    var fetchedResults = managedContext!.executeFetchRequest(fetchRequest, error: &error) as! [Settings]
     if fetchedResults.first == nil {
       let entity = NSEntityDescription.entityForName("Settings", inManagedObjectContext: managedContext!)
       currentSetting = Settings(entity: entity!, insertIntoManagedObjectContext: managedContext!)
       self.setDefaultColor()
+      self.setIntialBlockCount()
     } else {
       currentSetting = fetchedResults.first
-      if countElements(currentSetting.color) < 6 {
+      if count(currentSetting.color) < 6 {
         self.setDefaultColor()
       }
+      if currentSetting.blocks.integerValue > 0 {
+        self.blockCount.text = "⚠️:\(currentSetting.blocks.integerValue)"
+        self.blockCount.hidden = false
+      }
     }
+
+    self.loadBlockedUsers()
     
     self.view.backgroundColor = hexStringToUIColor(currentSetting.color)
 
@@ -76,9 +85,9 @@ class ViewController: UIViewController {
     
     self.createColorSwitcher()
     
-    var familyNames = UIFont.familyNames() as [String]
+    var familyNames = UIFont.familyNames() as! [String]
     for fontFamily in familyNames {
-      let family = UIFont.fontNamesForFamilyName(fontFamily) as [String]
+      let family = UIFont.fontNamesForFamilyName(fontFamily) as! [String]
       for font in family {
         fontList.append(font)
       }
@@ -91,9 +100,30 @@ class ViewController: UIViewController {
   }
 
   override func viewDidAppear(animated: Bool) {
+    let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: "censor:")
+    tapGestureRecognizer.numberOfTapsRequired = 1
+    self.view.addGestureRecognizer(tapGestureRecognizer)
+  }
+  
+  func loadBlockedUsers() {
+    // Fetch Banned Users
+    chatterBoxClient.blockUsers.removeAll(keepCapacity: true)
+    let banRequest = NSFetchRequest(entityName: "Ban")
+    var error: NSError? = nil
+    var banResults = managedContext!.executeFetchRequest(banRequest, error: &error) as! [Ban]
+    if banResults.count > 1 {
+      for user in banResults {
+        chatterBoxClient.blockUsers.append(user.id)
+      }
+    }
   }
   
   @IBAction func newThought(sender: UIButton) {
+    if currentSetting.blocks.integerValue > 24 {
+      var alertView = UIAlertView(title: "🚫", message: "⚠️ >= 25", delegate: nil, cancelButtonTitle: "😶")
+      alertView.show()
+      return
+    }
     isSending = false
     textView.text = ""
     textView.hidden = false
@@ -110,7 +140,7 @@ class ViewController: UIViewController {
     let textToSend = textView.text
     if textToSend != "" {
       chatterBoxClient.stopAdvertizing()
-      chatterBoxClient.setMessage(textToSend)
+      chatterBoxClient.myMessage(textToSend)
       delay(seconds: 1.0) { () -> () in
         self.chatterBoxClient.startAdvertizing()
       }
@@ -159,7 +189,7 @@ class ViewController: UIViewController {
       return
     }
 
-    let characterCount = Double(countElements(fullMessage!))
+    let characterCount = Double(count(fullMessage!))
     let randomValue = CGFloat(Float(arc4random()) / Float(UINT32_MAX))
     let randomAlpha = CGFloat(Float(arc4random()) / Float(UINT32_MAX))
     let scale = ceil(characterCount / 23.0)
@@ -197,13 +227,52 @@ class ViewController: UIViewController {
     layer.addAnimation(messageMove, forKey: nil)
   }
   
+  // MARK: - Censorship Methods
+  
+  func censor(sender: UITapGestureRecognizer) {
+    var touchPoint = sender.locationInView(self.view)
+    for view in self.view.subviews {
+      if let messageview = view as? UITextView {
+        if messageview.layer.presentationLayer().hitTest(touchPoint) != nil {
+          var messageKeys = messages.keys
+          for key in messageKeys {
+            if messages[key] == messageview.text {
+              self.shouldBlock = key
+              var alertBox = UIAlertView(title: "😧", message: "", delegate: self, cancelButtonTitle: "✌🏽", otherButtonTitles: "👎🏽")
+              alertBox.show()
+              //        delegate?.removeMessage(key)
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  func alertView(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int) {
+    if buttonIndex > 0 {
+      if self.shouldBlock == nil {
+        return
+      }
+      // block user
+      if chatterBoxClient.blockPeer(self.shouldBlock) {
+        let entity = NSEntityDescription.entityForName("Ban", inManagedObjectContext: managedContext!)
+        var banUser = Ban(entity: entity!, insertIntoManagedObjectContext: managedContext!)
+        banUser.id = chatterBoxClient.messages[self.shouldBlock]!.displayName
+        managedContext?.save(nil)
+        chatterBoxClient.messages.removeValueForKey(self.shouldBlock)
+        self.loadBlockedUsers()
+      }
+      self.shouldBlock = nil;
+    }
+  }
+  
   // MARK: - Animation Delegate Methods
   
   override func animationDidStop(anim: CAAnimation!, finished flag: Bool) {
     if let name = anim.valueForKey("name") as? String {
       if name == "message" {
         var messageKeys = messages.keys.array
-        let id = anim.valueForKey("id") as String
+        let id = anim.valueForKey("id") as! String
         let oldView = animatedTextViews[id]
         oldView!.removeFromSuperview()
         animatedTextViews[id] = nil
@@ -225,6 +294,15 @@ class ViewController: UIViewController {
   func setDefaultColor() {
     var error: NSError? = nil
     currentSetting.color = "0099CC"
+    managedContext!.save(&error)
+    if error != nil {
+      println(error)
+    }
+  }
+  
+  func setIntialBlockCount() {
+    var error: NSError? = nil
+    currentSetting.blocks = 0
     managedContext!.save(&error)
     if error != nil {
       println(error)
@@ -329,7 +407,7 @@ func hexStringToUIColor(hex:String) -> UIColor {
     cString = cString.substringFromIndex(advance(cString.startIndex, 1))
   }
   
-  if (countElements(cString) != 6) {
+  if (count(cString) != 6) {
     return UIColor.grayColor()
   }
   
@@ -387,5 +465,17 @@ extension ViewController: MultiPeerConnectivityManagerDelegate {
   func removeMessage(id: String) {
 //    println("Removing Message: \(id)")
     messages.removeValueForKey(id)
+  }
+  
+  func incrementBlockCount() {
+    var error: NSError? = nil
+    var totalBlocks = currentSetting.blocks as Int
+    currentSetting.blocks = totalBlocks + 1
+    managedContext!.save(&error)
+    if error != nil {
+      println(error)
+    }
+    self.blockCount.text = "⚠️:\(currentSetting.blocks.integerValue)"
+    self.blockCount.hidden = false
   }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6751" systemVersion="14C1514" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="BYZ-38-t0r">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6736"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -41,15 +41,28 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="⚠️:000" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zO7-Vb-06n">
+                                <rect key="frame" x="514" y="560" width="70" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="70" id="1Ma-lC-wmP"/>
+                                    <constraint firstAttribute="height" constant="21" id="jkk-VR-iDH"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <constraints>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="Hgs-2M-d5E" secondAttribute="bottom" constant="16" id="7S4-2n-9UF"/>
                             <constraint firstItem="g9Z-cu-F42" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="8" id="Emy-yu-6Qr"/>
+                            <constraint firstAttribute="trailing" secondItem="zO7-Vb-06n" secondAttribute="trailing" constant="16" id="UVl-ar-Qag"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="zO7-Vb-06n" secondAttribute="bottom" constant="19" id="iN2-Y7-qB8"/>
                             <constraint firstAttribute="centerX" secondItem="g9Z-cu-F42" secondAttribute="centerX" id="pjm-Ia-HdG"/>
                             <constraint firstItem="Hgs-2M-d5E" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="16" id="rtr-yc-jtD"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="blockCount" destination="zO7-Vb-06n" id="hEA-ky-4Vg"/>
                         <outlet property="textView" destination="g9Z-cu-F42" id="TXM-UF-zWh"/>
                         <outlet property="textViewTopConstraint" destination="Emy-yu-6Qr" id="FRf-T8-cfm"/>
                         <outlet property="thoughtButton" destination="Hgs-2M-d5E" id="VBB-Cp-Wnx"/>
